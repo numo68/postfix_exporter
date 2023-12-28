@@ -27,6 +27,8 @@ func TestPostfixExporter_CollectFromLogline(t *testing.T) {
 		smtpDeferreds                   prometheus.Counter
 		smtpStatusDeferred              prometheus.Counter
 		smtpProcesses                   *prometheus.CounterVec
+		smtpDeferredDSN                 *prometheus.CounterVec
+		smtpBouncedDSN                  *prometheus.CounterVec
 		smtpdConnects                   prometheus.Counter
 		smtpdDisconnects                prometheus.Counter
 		smtpdFCrDNSErrors               prometheus.Counter
@@ -47,6 +49,8 @@ func TestPostfixExporter_CollectFromLogline(t *testing.T) {
 		outgoingTLS            int
 		smtpdMessagesProcessed int
 		smtpMessagesProcessed  int
+		smtpDeferred           int
+		smtpBounced            int
 		bounceNonDelivery  int
 		virtualDelivered       int
 		unsupportedLogEntries  []string
@@ -206,6 +210,8 @@ func TestPostfixExporter_CollectFromLogline(t *testing.T) {
 					"Dec 29 03:03:48 mail postfix/bounce[9321]: 732BB407C3: sender non-delivery notification: 5DE184083C",
 				},
 				smtpMessagesProcessed:  2,
+				smtpDeferred: 1,
+				smtpBounced: 1,
 				bounceNonDelivery: 1,
 			},
 			fields: fields{
@@ -213,6 +219,8 @@ func TestPostfixExporter_CollectFromLogline(t *testing.T) {
 				smtpDelays: prometheus.NewHistogramVec(prometheus.HistogramOpts{}, []string{"stage"}),
 				smtpStatusDeferred: prometheus.NewCounter(prometheus.CounterOpts{}),
 				smtpProcesses: prometheus.NewCounterVec(prometheus.CounterOpts{}, []string{"status"}),
+				smtpDeferredDSN: prometheus.NewCounterVec(prometheus.CounterOpts{}, []string{"dsn"}),
+				smtpBouncedDSN: prometheus.NewCounterVec(prometheus.CounterOpts{}, []string{"dsn"}),
 				bounceNonDelivery: prometheus.NewCounter(prometheus.CounterOpts{}),
 			},
 		},
@@ -267,6 +275,8 @@ func TestPostfixExporter_CollectFromLogline(t *testing.T) {
 				smtpDeferreds:                   tt.fields.smtpDeferreds,
 				smtpStatusDeferred:              tt.fields.smtpStatusDeferred,
 				smtpProcesses:                   tt.fields.smtpProcesses,
+				smtpDeferredDSN:                 tt.fields.smtpDeferredDSN,
+				smtpBouncedDSN:                  tt.fields.smtpBouncedDSN,
 				smtpdConnects:                   tt.fields.smtpdConnects,
 				smtpdDisconnects:                tt.fields.smtpdDisconnects,
 				smtpdFCrDNSErrors:               tt.fields.smtpdFCrDNSErrors,
@@ -289,6 +299,8 @@ func TestPostfixExporter_CollectFromLogline(t *testing.T) {
 			assertCounterEquals(t, e.smtpTLSConnects, tt.args.outgoingTLS, "Wrong number of TLS connections counted")
 			assertCounterEquals(t, e.smtpdProcesses, tt.args.smtpdMessagesProcessed, "Wrong number of smtpd messages processed")
 			assertCounterEquals(t, e.smtpProcesses, tt.args.smtpMessagesProcessed, "Wrong number of smtp messages processed")
+			assertCounterEquals(t, e.smtpDeferredDSN, tt.args.smtpDeferred, "Wrong number of smtp deferred")
+			assertCounterEquals(t, e.smtpBouncedDSN, tt.args.smtpBounced, "Wrong number of smtp bounced")
 			assertCounterEquals(t, e.bounceNonDelivery, tt.args.bounceNonDelivery, "Wrong number of non delivery notifications")
 			assertCounterEquals(t, e.virtualDelivered, tt.args.virtualDelivered, "Wrong number of delivered mails")
 			assertVecMetricsEquals(t, e.unsupportedLogEntries, tt.args.unsupportedLogEntries, "Wrong number of unsupportedLogEntries")
