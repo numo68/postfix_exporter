@@ -1,13 +1,21 @@
 package main
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/prometheus/client_golang/prometheus"
 	io_prometheus_client "github.com/prometheus/client_model/go"
 	"github.com/stretchr/testify/assert"
 )
+
+type testCounterMetric struct {
+	Label        []*io_prometheus_client.LabelPair
+	CounterValue float64
+}
+
+func stringPtr(s string) *string {
+	return &s
+}
 
 func TestPostfixExporter_CollectFromLogline(t *testing.T) {
 	type fields struct {
@@ -53,7 +61,7 @@ func TestPostfixExporter_CollectFromLogline(t *testing.T) {
 		smtpBounced            int
 		bounceNonDelivery  int
 		virtualDelivered       int
-		unsupportedLogEntries  []string
+		unsupportedLogEntries  []testCounterMetric
 	}
 	tests := []struct {
 		name   string
@@ -245,10 +253,46 @@ func TestPostfixExporter_CollectFromLogline(t *testing.T) {
 					"Mar 16 23:30:44 123-mail postfix/qmgr[29980]: warning: please avoid flushing the whole queue when you have",
 					"Mar 16 23:30:44 123-mail postfix/qmgr[29980]: warning: lots of deferred mail, that is bad for performance",
 				},
-				unsupportedLogEntries: []string{
-					`label:{name:"level" value:""} label:{name:"service" value:"smtpd"} counter:{value:1}`,
-					`label:{name:"level" value:"fatal"} label:{name:"service" value:"smtpd"} counter:{value:1}`,
-					`label:{name:"level" value:"warning"} label:{name:"service" value:"qmgr"} counter:{value:2}`,
+				unsupportedLogEntries: []testCounterMetric{
+					{
+						Label: []*io_prometheus_client.LabelPair{
+							{
+								Name:  stringPtr("level"),
+								Value: stringPtr(""),
+							},
+							{
+								Name:  stringPtr("service"),
+								Value: stringPtr("smtpd"),
+							},
+						},
+						CounterValue: 1,
+					},
+					{
+						Label: []*io_prometheus_client.LabelPair{
+							{
+								Name:  stringPtr("level"),
+								Value: stringPtr("fatal"),
+							},
+							{
+								Name:  stringPtr("service"),
+								Value: stringPtr("smtpd"),
+							},
+						},
+						CounterValue: 1,
+					},
+					{
+						Label: []*io_prometheus_client.LabelPair{
+							{
+								Name:  stringPtr("level"),
+								Value: stringPtr("warning"),
+							},
+							{
+								Name:  stringPtr("service"),
+								Value: stringPtr("qmgr"),
+							},
+						},
+						CounterValue: 2,
+					},
 				},
 			},
 			fields: fields{
@@ -303,7 +347,7 @@ func TestPostfixExporter_CollectFromLogline(t *testing.T) {
 			assertCounterEquals(t, e.smtpBouncedDSN, tt.args.smtpBounced, "Wrong number of smtp bounced")
 			assertCounterEquals(t, e.bounceNonDelivery, tt.args.bounceNonDelivery, "Wrong number of non delivery notifications")
 			assertCounterEquals(t, e.virtualDelivered, tt.args.virtualDelivered, "Wrong number of delivered mails")
-			assertVecMetricsEquals(t, e.unsupportedLogEntries, tt.args.unsupportedLogEntries, "Wrong number of unsupportedLogEntries")
+			assertCounterVecMetricsEquals(t, e.unsupportedLogEntries, tt.args.unsupportedLogEntries, "Wrong number of unsupportedLogEntries")
 		})
 	}
 }
@@ -343,18 +387,22 @@ func assertCounterEquals(t *testing.T, counter prometheus.Collector, expected in
 		}
 	}
 }
-func assertVecMetricsEquals(t *testing.T, counter *prometheus.CounterVec, expected []string, message string) {
+func assertCounterVecMetricsEquals(t *testing.T, counter *prometheus.CounterVec, expected []testCounterMetric, message string) {
 	if expected != nil {
 		metricsChan := make(chan prometheus.Metric)
 		go func() {
 			counter.Collect(metricsChan)
 			close(metricsChan)
 		}()
-		var res []string
+		var res []testCounterMetric
 		for metric := range metricsChan {
 			metricDto := io_prometheus_client.Metric{}
 			_ = metric.Write(&metricDto)
-			res = append(res, strings.Replace(metricDto.String(), "  ", " ", -1))
+			cm := testCounterMetric{
+				Label:        metricDto.Label,
+				CounterValue: *metricDto.Counter.Value,
+			}
+			res = append(res, cm)
 		}
 		assert.ElementsMatch(t, expected, res, message)
 	}
