@@ -6,5 +6,12 @@ fileExistenceTests:
     permissions: "-rwxr-xr-x"
 metadataTest:
   entrypoint: ["/postfix_exporter"]
+  labels:
+    - key: "org.opencontainers.image.authors"
+      value: "Hsn723"
+    - key: "org.opencontainers.image.title"
+      value: "postfix_exporter"
+    - key: "org.opencontainers.image.source"
+      value: "https://github.com/hsn723/postfix_exporter"
 licenseTests:
   - files: ["/LICENSE"]
