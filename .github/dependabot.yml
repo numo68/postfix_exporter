@@ -8,6 +8,24 @@ updates:
       - "Hsn723"
     allow:
       - dependency-type: "all"
+    groups:
+      prometheus:
+        patterns:
+          - "^github.com/prometheus/.*"
+      docker:
+        patterns:
+          - "^github.com/containerd/.*"
+          - "^github.com/distribution/.*"
+          - "^github.com/docker/.*"
+          - "^github.com/moby/.*"
+          - "^github.com/opencontainers/.*"
+      otel:
+        patterns:
+          - "^github.com/prometheus/.*"
+          - "^go.opentelemetry.io/.*"
+      golang:
+        patterns:
+          - "^golang.org/x/.*"
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
