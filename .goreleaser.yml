@@ -4,7 +4,8 @@ before:
   hooks:
     - go mod download
 builds:
-  - env:
+  - id: default
+    env:
       - CGO_ENABLED=0
     flags:
       - -tags=nosystemd,nodocker
@@ -13,10 +14,20 @@ builds:
     goarch:
       - amd64
       - arm64
+  - id: with-docker
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -tags=nosystemd
+    env:
+      - CGO_ENABLED=0
 dockers:
   - image_templates:
     - "ghcr.io/hsn723/{{.ProjectName}}:{{ .Version }}-amd64"
     use: buildx
+    ids:
+      - default
     dockerfile: Dockerfile
     extra_files:
       - LICENSE
@@ -28,6 +39,8 @@ dockers:
   - image_templates:
     - "ghcr.io/hsn723/{{.ProjectName}}:{{ .Version }}-arm64"
     use: buildx
+    ids:
+      - default
     goarch: arm64
     dockerfile: Dockerfile
     extra_files:
@@ -50,6 +63,14 @@ docker_manifests:
     image_templates:
       - "ghcr.io/hsn723/{{.ProjectName}}:{{ .Version }}-amd64"
       - "ghcr.io/hsn723/{{.ProjectName}}:{{ .Version }}-arm64"
+archives:
+  - id: default
+    builds:
+      - default
+  - id: with-docker
+    builds:
+      - with-docker
+    name_template: "{{ .ProjectName }}_docker_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
 checksum:
   name_template: 'checksums.txt'
 snapshot:
