@@ -27,9 +27,11 @@ These options can be used when starting the `postfix_exporter`
 | `--systemd.slice`        | Name of the Postfix systemd slice.                   | `""`                              |
 | `--systemd.journal_path` | Path to the systemd journal                          | `""`                              |
 
+The `--docker.*` flags are not available for binaries built with the `nodocker` build tag. The `--systemd.*` flags are not available for binaries built with the `nosystemd` build tag.
+
 ## Events from Docker
 
-Postfix servers running in a [Docker](https://www.docker.com/)
+If postfix_exporter is built with docker support, postfix servers running in a [Docker](https://www.docker.com/)
 container can be monitored using the `--docker.enable` flag. The
 default container ID is `postfix`, but can be customized with the
 `--docker.container.id` flag.
@@ -54,9 +56,13 @@ Additionally, it is possible to read the journal from a directory with the `--sy
 
 ## Build options
 
-Default the exporter is build with systemd journal functionality (but it is disabled at default).
-Because the systemd headers are required for building with systemd, there is
-an option to build the exporter without systemd. Use the build tag `nosystemd`.
+By default, the exporter is built without docker and systemd support.
+
+```sh
+go build -tags nosystemd,nodocker
+```
+
+To build the exporter with support for docker or systemd, remove the relevant build build tag from the build arguments. Note that systemd headers are required for building with systemd. On Debian-based systems, this is typically achieved by installing the `libsystemd-dev` APT package.
 
 ```
 go build -tags nosystemd
