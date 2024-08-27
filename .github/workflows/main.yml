@@ -75,6 +75,10 @@ jobs:
       - name: Setup latest version tag
         run: |
           echo "GORELEASER_CURRENT_TAG=$(git describe --tags --abbrev=0 --match "v*" || echo v0.0.0)" >> $GITHUB_ENV
+      - name: Install build dependencies
+        run: |
+          make libsystemd-dev
+          make gcc-aarch64-linux-gnu
       - name: GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:

@@ -5,6 +5,10 @@ BINDIR = $(shell pwd)/bin
 libsystemd-dev:
 	@dpkg -s $@ >/dev/null 2>&1 || sudo apt-get install -y --no-install-recommends $@
 
+.PHONY: gcc-aarch64-linux-gnu
+gcc-aarch64-linux-gnu:
+	@dpkg -s $@ >/dev/null 2>&1 || sudo apt-get install -y $@
+
 .PHONY: test
 test: libsystemd-dev
 	go test -coverprofile cover.out -count=1 -race -p 4 -v ./...
