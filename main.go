@@ -6,15 +6,27 @@ import (
 	"net/http"
 	"os"
 
+	_ "embed"
 	"github.com/alecthomas/kingpin"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+)
+
+var (
+	version string
+	commit  string
+	date    string
+	builtBy string
+
+	//go:embed VERSION
+	fallbackVersion string
 )
 
 func main() {
 	var (
 		ctx                 = context.Background()
 		app                 = kingpin.New("postfix_exporter", "Prometheus metrics exporter for postfix")
+		versionFlag         = app.Flag("version", "Print version information").Bool()
 		listenAddress       = app.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9154").String()
 		metricsPath         = app.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
 		postfixShowqPath    = app.Flag("postfix.showq_path", "Path at which Postfix places its showq socket.").Default("/var/spool/postfix/public/showq").String()
@@ -23,6 +35,26 @@ func main() {
 
 	InitLogSourceFactories(app)
 	kingpin.MustParse(app.Parse(os.Args[1:]))
+
+	if version == "" {
+		version = fallbackVersion
+	}
+
+	if *versionFlag {
+		os.Stdout.WriteString(version)
+		os.Exit(0)
+	}
+	versionString := "postfix_exporter " + version
+	if commit != "" {
+		versionString += " (" + commit + ")"
+	}
+	if date != "" {
+		versionString += " built on " + date
+	}
+	if builtBy != "" {
+		versionString += " by: " + builtBy
+	}
+	log.Print(versionString)
 
 	logSrc, err := NewLogSourceFromFactories(ctx)
 	if err != nil {
