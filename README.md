@@ -67,3 +67,14 @@ To build the exporter with support for docker or systemd, remove the relevant bu
 ```
 go build -tags nosystemd
 ```
+
+## Releases
+
+Signed container images are provided from the GitHub Container Registry (https://github.com/Hsn723/postfix_exporter/pkgs/container/postfix_exporter). The binary included in container images is built without docker and systemd support.
+
+The [Releases](https://github.com/Hsn723/postfix_exporter/releases) page includes signed pre-built binaries for various configurations.
+
+- postfix_exporter binaries are minimal builds (docker and systemd support excluded)
+- postfix_exporter_docker binaries have docker support built-in
+- postfix_exporter_systemd binaries have systemd support built-in
+- postfix_exporter_aio binaries are built with everything included, which can be useful for packaging for systems where the final use-case is not known in advance
