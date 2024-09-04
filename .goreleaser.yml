@@ -34,6 +34,16 @@ builds:
         {{- if eq .Arch "arm64" }}CC=/usr/bin/aarch64-linux-gnu-gcc{{- end }}
     goos:
       - linux
+  - id: aio
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    env:
+      - CGO_ENABLED=1
+      - >-
+        {{- if eq .Arch "arm64" }}CC=/usr/bin/aarch64-linux-gnu-gcc{{- end }}
 dockers:
   - image_templates:
     - "ghcr.io/hsn723/{{.ProjectName}}:{{ .Version }}-amd64"
@@ -87,6 +97,10 @@ archives:
     builds:
       - with-systemd
     name_template: "{{ .ProjectName }}_systemd_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+  - id: aio
+    builds:
+      - aio
+    name_template: "{{ .ProjectName }}_aio_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
 checksum:
   name_template: 'checksums.txt'
 snapshot:
