@@ -9,9 +9,6 @@ updates:
     allow:
       - dependency-type: "all"
     groups:
-      prometheus:
-        patterns:
-          - "^github.com/prometheus/.*"
       docker:
         patterns:
           - "^github.com/containerd/.*"
