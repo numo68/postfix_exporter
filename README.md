@@ -14,6 +14,7 @@ These options can be used when starting the `postfix_exporter`
 | Flag                     | Description                                          | Default                           |
 |--------------------------|------------------------------------------------------|-----------------------------------|
 | `--web.listen-address`   | Address to listen on for web interface and telemetry | `9154`                            |
+| `--web.config.file   `   | Path to configuration file that can enable TLS or authentication [(ref)](https://github.com/prometheus/exporter-toolkit/blob/master/docs/web-configuration.md). | `""`                            |
 | `--web.telemetry-path`   | Path under which to expose metrics                   | `/metrics`                        |
 | `--postfix.showq_path`   | Path at which Postfix places its showq socket        | `/var/spool/postfix/public/showq` |
 | `--postfix.logfile_path` | Path where Postfix writes log entries                | `/var/log/mail.log`               |
