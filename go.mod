@@ -1,4 +1,4 @@
-module github.com/kumina/postfix_exporter
+module github.com/hsn723/postfix_exporter
 
 go 1.22
 
