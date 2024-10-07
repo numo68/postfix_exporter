@@ -7,9 +7,13 @@ import (
 	"os"
 
 	_ "embed"
-	"github.com/alecthomas/kingpin"
+
+	"github.com/alecthomas/kingpin/v2"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/common/promslog"
+	"github.com/prometheus/exporter-toolkit/web"
+	"github.com/prometheus/exporter-toolkit/web/kingpinflag"
 )
 
 var (
@@ -27,7 +31,7 @@ func main() {
 		ctx                 = context.Background()
 		app                 = kingpin.New("postfix_exporter", "Prometheus metrics exporter for postfix")
 		versionFlag         = app.Flag("version", "Print version information").Bool()
-		listenAddress       = app.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9154").String()
+		toolkitFlags        = kingpinflag.AddFlags(app, ":9154")
 		metricsPath         = app.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
 		postfixShowqPath    = app.Flag("postfix.showq_path", "Path at which Postfix places its showq socket.").Default("/var/spool/postfix/public/showq").String()
 		logUnsupportedLines = app.Flag("log.unsupported", "Log all unsupported lines.").Bool()
@@ -73,22 +77,28 @@ func main() {
 	prometheus.MustRegister(exporter)
 
 	http.Handle(*metricsPath, promhttp.Handler())
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		_, err = w.Write([]byte(`
-			<html>
-			<head><title>Postfix Exporter</title></head>
-			<body>
-			<h1>Postfix Exporter</h1>
-			<p><a href='` + *metricsPath + `'>Metrics</a></p>
-			</body>
-			</html>`))
-		if err != nil {
-			panic(err)
-		}
-	})
+	lc := web.LandingConfig{
+		Name:        "Postfix Exporter",
+		Description: "Prometheus exporter for postfix metrics",
+		Version:     versionString,
+		Links: []web.LandingLinks{
+			{
+				Address: *metricsPath,
+				Text:    "Metrics",
+			},
+		},
+	}
+	lp, err := web.NewLandingPage(lc)
+	if err != nil {
+		log.Fatalf("Failed to create landing page: %s", err)
+	}
+	http.Handle("/", lp)
+
 	ctx, cancelFunc := context.WithCancel(ctx)
 	defer cancelFunc()
 	go exporter.StartMetricCollection(ctx)
-	log.Print("Listening on ", *listenAddress)
-	log.Fatal(http.ListenAndServe(*listenAddress, nil))
+
+	server := &http.Server{}
+	logger := promslog.New(&promslog.Config{})
+	log.Fatal(web.ListenAndServe(server, toolkitFlags, logger))
 }

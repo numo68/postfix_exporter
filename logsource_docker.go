@@ -9,7 +9,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/alecthomas/kingpin"
+	"github.com/alecthomas/kingpin/v2"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 )
