@@ -1,5 +1,8 @@
 # Prometheus Postfix exporter
 
+**NOTE** These are just private tweaks in a fork-of-fork for my own use-case.
+No issues/PRs/... are accepted, please submit them to upstream.
+
 Prometheus metrics exporter for [the Postfix mail server](http://www.postfix.org/).
 This exporter provides histogram metrics for the size and age of messages stored in
 the mail queue. It extracts these metrics from Postfix by connecting to

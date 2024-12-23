@@ -8,7 +8,7 @@ builds:
     env:
       - CGO_ENABLED=0
     flags:
-      - -tags=nosystemd,nodocker
+      - -tags=nodocker
     goos:
       - linux
     goarch:
